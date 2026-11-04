@@ -4,10 +4,9 @@ import { BikesController } from "./bikes.controller";
 import { BikesRepository } from "./bikes.repository";
 import { BikesService } from "./bikes.service";
 import { BikeEntity } from "./entities/bike.entity";
-
+import { BikeSellEntity } from "../customers/entities/bike-sell.entity";
 @Module({
-  imports: [TypeOrmModule.forFeature([BikeEntity])],
-  controllers: [BikesController],
+  imports: [TypeOrmModule.forFeature([BikeEntity, BikeSellEntity])],  controllers: [BikesController],
   providers: [BikesService, BikesRepository],
 })
 export class BikesModule {}

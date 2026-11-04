@@ -8,12 +8,22 @@ import type {
 export const useCustomersProvider = () => {
   const [customers, setCustomers] = useState<CustomerModel[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const limit = 10;
 
-  const load = () => {
+  const load = (pageNumber: number = 1) => {
     setIsLoading(true);
+
     axios
-      .get("http://localhost:3000/customers")
-      .then((result) => setCustomers(result.data))
+      .get("http://localhost:3000/customers", {
+        params: { page: pageNumber, limit },
+      })
+      .then((result) => {
+        setCustomers(result.data.customers);
+        setTotalCount(result.data.totalCount);
+        setPage(pageNumber);
+      })
       .finally(() => {
         setIsLoading(false);
       });
@@ -21,16 +31,17 @@ export const useCustomersProvider = () => {
 
   const deleteCustomer = (id: string) => {
     axios.delete(`http://localhost:3000/customers/${id}`).then(() => {
-      setCustomers((prev) => prev.filter((customer) => customer.id !== id));
+      setCustomers((prev) =>
+        prev.filter((customer) => customer.id !== id),
+      );
+      setTotalCount((prev) => prev - 1);
     });
   };
 
-  // Returns the request so the caller can react to errors (e.g. email already in use)
   const createCustomer = (input: CreateCustomerModel) =>
     axios
       .post<CustomerModel>("http://localhost:3000/customers", input)
       .then((result) => {
-        // Keep the same order as the backend: last name, then first name
         setCustomers((prev) =>
           [...prev, result.data].sort(
             (a, b) =>
@@ -38,7 +49,17 @@ export const useCustomersProvider = () => {
               a.firstName.localeCompare(b.firstName),
           ),
         );
+        setTotalCount((prev) => prev + 1);
       });
 
-  return { customers, load, isLoading, deleteCustomer, createCustomer };
+  return {
+    customers,
+    load,
+    isLoading,
+    deleteCustomer,
+    createCustomer,
+    totalCount,
+    page,
+    limit,
+  };
 };

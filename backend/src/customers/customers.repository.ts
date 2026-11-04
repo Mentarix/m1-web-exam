@@ -32,6 +32,24 @@ export class CustomersRepository {
     return entities.map((entity) => this.toCustomerModel(entity));
   }
 
+  async findPaginated(
+  page: number,
+  limit: number,
+): Promise<{ totalCount: number; customers: CustomerModel[] }> {
+  const [entities, totalCount] = await this.dataSource
+    .getRepository(CustomerEntity)
+    .findAndCount({
+      order: { lastName: "ASC", firstName: "ASC", id: "ASC" },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+  return {
+    totalCount,
+    customers: entities.map((entity) => this.toCustomerModel(entity)),
+  };
+}
+
   async findById(id: string): Promise<CustomerModel | null> {
     const entity = await this.dataSource
       .getRepository(CustomerEntity)
